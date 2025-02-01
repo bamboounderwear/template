@@ -36,13 +36,13 @@ async function processCSS() {
     autoprefixer
   ]).process(css, {
     from: 'assets/css/styles.css',
-    to: path.join(distDir, 'assets/css/styles.css')
+    to: 'dist/assets/css/styles.css'
   });
 
   // Ensure the css directory exists in dist/assets
   const distCssDir = path.join(distAssetsDir, 'css');
   if (!fs.existsSync(distCssDir)) {
-    fs.mkdirSync(distCssDir);
+    fs.mkdirSync(distCssDir, { recursive: true });
   }
 
   fs.writeFileSync(path.join(distDir, 'assets/css/styles.css'), result.css);
@@ -80,15 +80,16 @@ function processTemplate(content) {
 
 // Process directories and files
 function processDirectory(srcDir, destDir) {
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+  
   fs.readdirSync(srcDir).forEach(entry => {
     const srcPath = path.join(srcDir, entry);
     const destPath = path.join(destDir, entry);
     const stats = fs.statSync(srcPath);
     
     if (stats.isDirectory()) {
-      if (!fs.existsSync(destPath)) {
-        fs.mkdirSync(destPath);
-      }
       processDirectory(srcPath, destPath);
     } else if (stats.isFile()) {
       const content = fs.readFileSync(srcPath, 'utf8');
