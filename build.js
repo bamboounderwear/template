@@ -60,8 +60,19 @@ function parseParams(paramsString) {
   return params;
 }
 
+// Fix asset paths based on the current page depth
+function fixAssetPaths(content, depth) {
+  const prefix = '../'.repeat(depth);
+  return content.replace(/href="assets\//g, `href="${prefix}assets/`)
+                .replace(/src="assets\//g, `src="${prefix}assets/`);
+}
+
 // Replace include tags with the corresponding component content
-function processTemplate(content) {
+function processTemplate(content, filePath) {
+  // Calculate the depth of the current file relative to the dist directory
+  const relativePath = path.relative(distDir, filePath);
+  const depth = relativePath.split(path.sep).length - 1;
+
   return content.replace(/{{>\s*(\w+)([^}]*)}}/g, (match, componentName, paramsString) => {
     const componentPath = path.join(componentsDir, `${componentName}.html`);
     if (!fs.existsSync(componentPath)) {
@@ -70,6 +81,10 @@ function processTemplate(content) {
     }
     let componentContent = fs.readFileSync(componentPath, 'utf8');
     const params = parseParams(paramsString);
+    
+    // Fix asset paths in the component based on the page depth
+    componentContent = fixAssetPaths(componentContent, depth);
+    
     for (const key in params) {
       const placeholderRegex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
       componentContent = componentContent.replace(placeholderRegex, params[key]);
@@ -93,7 +108,7 @@ function processDirectory(srcDir, destDir) {
       processDirectory(srcPath, destPath);
     } else if (stats.isFile()) {
       const content = fs.readFileSync(srcPath, 'utf8');
-      const processedContent = processTemplate(content);
+      const processedContent = processTemplate(content, destPath);
       fs.writeFileSync(destPath, processedContent, 'utf8');
       console.log(`Built ${destPath}`);
     }
