@@ -1,19 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Home</title>
-</head>
-<body>
-  <!-- Pass dynamic parameters to the nav component -->
-  {{> nav title="Welcome Home" slogan="Your adventure starts here"}}
+{{> head pageTitle="Home"}}
+{{> nav title="Welcome Home" slogan="Your adventure starts here"}}
 
-  <main>
-    <h1>Home Page</h1>
-    <p>This is the home page of our minimal static site.</p>
-  </main>
+<main>
+  <h1>Home Page</h1>
+  <p>This is the home page of our minimal static site.</p>
+</main>
 
-  <!-- Pass a parameter to the footer component (optional) -->
-  {{> footer text="© 2025 HomeSite Inc."}}
-</body>
-</html>
+{{> footer text="© 2025 HomeSite Inc."}}

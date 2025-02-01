@@ -1,8 +1,7 @@
 {
   "name": "vanilla-static-site",
   "version": "1.0.0",
-  "description": "A simple static site generator using a custom templating system",
-  "main": "build.js",
+  "description": "A minimal static site generator using a custom templating system",
   "scripts": {
     "build": "node build.js"
   },
