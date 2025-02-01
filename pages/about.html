@@ -1,19 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>About</title>
-</head>
-<body>
-  <!-- Pass dynamic parameters to the nav component -->
-  {{> nav title="About Us" slogan="Learn more about our mission"}}
+{{> head pageTitle="About Us"}}
+{{> nav title="About Our Company" slogan="Learn more about our mission"}}
 
-  <main>
-    <h1>About Page</h1>
-    <p>This page contains information about our company and mission.</p>
-  </main>
+<main>
+  <h1>About Page</h1>
+  <p>This page contains information about our company and our mission.</p>
+</main>
 
-  <!-- Pass a parameter to the footer component (optional) -->
-  {{> footer text="© 2025 AboutPage Inc."}}
-</body>
-</html>
+{{> footer text="© 2025 AboutPage Inc."}}
