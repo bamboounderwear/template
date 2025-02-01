@@ -22,7 +22,8 @@ function parseParams(paramsString) {
   return params;
 }
 
-// Replace include tags with the corresponding component content, replacing placeholders with passed parameters
+// Replace include tags with the corresponding component content,
+// replacing placeholders with passed parameters.
 function processTemplate(content) {
   return content.replace(/{{>\s*(\w+)([^}]*)}}/g, (match, componentName, paramsString) => {
     const componentPath = path.join(componentsDir, `${componentName}.html`);
