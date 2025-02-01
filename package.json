@@ -4,7 +4,7 @@
   "description": "A minimal static site generator using a custom templating system",
   "scripts": {
     "build": "node build.js",
-    "watch:css": "npx tailwindcss -i ./styles.css -o ./dist/styles.css --watch"
+    "watch:css": "npx tailwindcss -i ./assets/css/styles.css -o ./dist/assets/css/styles.css --watch"
   },
   "author": "",
   "license": "MIT",
