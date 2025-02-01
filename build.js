@@ -23,9 +23,24 @@ if (!fs.existsSync(distAssetsDir)) {
 function copyAssets() {
   const assetsDir = path.join(__dirname, 'assets');
   if (fs.existsSync(assetsDir)) {
-    fs.cpSync(assetsDir, distAssetsDir, { recursive: true });
+    // Ensure js and css directories exist in dist/assets
+    const distJsDir = path.join(distAssetsDir, 'js');
+    const distCssDir = path.join(distAssetsDir, 'css');
+    
+    if (!fs.existsSync(distJsDir)) {
+      fs.mkdirSync(distJsDir, { recursive: true });
+    }
+    if (!fs.existsSync(distCssDir)) {
+      fs.mkdirSync(distCssDir, { recursive: true });
+    }
+
+    // Copy JS files
+    if (fs.existsSync(path.join(assetsDir, 'js'))) {
+      fs.cpSync(path.join(assetsDir, 'js'), distJsDir, { recursive: true });
+    }
+    
+    console.log('Assets copied to dist');
   }
-  console.log('Assets copied to dist');
 }
 
 // Process CSS with PostCSS and Tailwind
@@ -60,19 +75,8 @@ function parseParams(paramsString) {
   return params;
 }
 
-// Fix asset paths based on the current page depth
-function fixAssetPaths(content, depth) {
-  const prefix = '../'.repeat(depth);
-  return content.replace(/href="assets\//g, `href="${prefix}assets/`)
-                .replace(/src="assets\//g, `src="${prefix}assets/`);
-}
-
 // Replace include tags with the corresponding component content
-function processTemplate(content, filePath) {
-  // Calculate the depth of the current file relative to the dist directory
-  const relativePath = path.relative(distDir, filePath);
-  const depth = relativePath.split(path.sep).length - 1;
-
+function processTemplate(content) {
   return content.replace(/{{>\s*(\w+)([^}]*)}}/g, (match, componentName, paramsString) => {
     const componentPath = path.join(componentsDir, `${componentName}.html`);
     if (!fs.existsSync(componentPath)) {
@@ -81,10 +85,6 @@ function processTemplate(content, filePath) {
     }
     let componentContent = fs.readFileSync(componentPath, 'utf8');
     const params = parseParams(paramsString);
-    
-    // Fix asset paths in the component based on the page depth
-    componentContent = fixAssetPaths(componentContent, depth);
-    
     for (const key in params) {
       const placeholderRegex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
       componentContent = componentContent.replace(placeholderRegex, params[key]);
@@ -108,16 +108,27 @@ function processDirectory(srcDir, destDir) {
       processDirectory(srcPath, destPath);
     } else if (stats.isFile()) {
       const content = fs.readFileSync(srcPath, 'utf8');
-      const processedContent = processTemplate(content, destPath);
+      const processedContent = processTemplate(content);
       fs.writeFileSync(destPath, processedContent, 'utf8');
       console.log(`Built ${destPath}`);
     }
   });
 }
 
+// Clean dist directory
+function cleanDist() {
+  if (fs.existsSync(distDir)) {
+    fs.rmSync(distDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(distDir);
+  console.log('Cleaned dist directory');
+}
+
 // Main build process
 async function build() {
   try {
+    // Clean dist first
+    cleanDist();
     // Process CSS first
     await processCSS();
     // Copy assets
