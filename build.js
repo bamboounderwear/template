@@ -8,6 +8,15 @@ const pagesDir = path.join(__dirname, 'pages');
 const componentsDir = path.join(__dirname, 'components');
 const distDir = path.join(__dirname, 'dist');
 
+// Clean dist directory
+function cleanDist() {
+  if (fs.existsSync(distDir)) {
+    fs.rmSync(distDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(distDir);
+  console.log('Cleaned dist directory');
+}
+
 // Ensure the dist directory exists
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir);
@@ -38,7 +47,7 @@ function copyAssets() {
     if (fs.existsSync(path.join(assetsDir, 'js'))) {
       fs.cpSync(path.join(assetsDir, 'js'), distJsDir, { recursive: true });
     }
-    
+
     console.log('Assets copied to dist');
   }
 }
@@ -53,12 +62,6 @@ async function processCSS() {
     from: 'assets/css/styles.css',
     to: 'dist/assets/css/styles.css'
   });
-
-  // Ensure the css directory exists in dist/assets
-  const distCssDir = path.join(distAssetsDir, 'css');
-  if (!fs.existsSync(distCssDir)) {
-    fs.mkdirSync(distCssDir, { recursive: true });
-  }
 
   fs.writeFileSync(path.join(distDir, 'assets/css/styles.css'), result.css);
   console.log('CSS processed with Tailwind');
@@ -113,15 +116,6 @@ function processDirectory(srcDir, destDir) {
       console.log(`Built ${destPath}`);
     }
   });
-}
-
-// Clean dist directory
-function cleanDist() {
-  if (fs.existsSync(distDir)) {
-    fs.rmSync(distDir, { recursive: true, force: true });
-  }
-  fs.mkdirSync(distDir);
-  console.log('Cleaned dist directory');
 }
 
 // Main build process
