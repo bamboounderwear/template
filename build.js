@@ -17,35 +17,31 @@ function cleanDist() {
   console.log('Cleaned dist directory');
 }
 
-// Ensure the dist directory exists
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir);
-}
+// Create necessary directories
+function createDirectories() {
+  // Create dist/assets
+  const distAssetsDir = path.join(distDir, 'assets');
+  fs.mkdirSync(distAssetsDir, { recursive: true });
 
-// Ensure the dist/assets directory exists
-const distAssetsDir = path.join(distDir, 'assets');
-if (!fs.existsSync(distAssetsDir)) {
-  fs.mkdirSync(distAssetsDir);
+  // Create dist/assets/css
+  const distCssDir = path.join(distAssetsDir, 'css');
+  fs.mkdirSync(distCssDir, { recursive: true });
+
+  // Create dist/assets/js
+  const distJsDir = path.join(distAssetsDir, 'js');
+  fs.mkdirSync(distJsDir, { recursive: true });
+
+  console.log('Created necessary directories');
 }
 
 // Copy assets to dist
 function copyAssets() {
   const assetsDir = path.join(__dirname, 'assets');
   if (fs.existsSync(assetsDir)) {
-    // Ensure js and css directories exist in dist/assets
-    const distJsDir = path.join(distAssetsDir, 'js');
-    const distCssDir = path.join(distAssetsDir, 'css');
-    
-    if (!fs.existsSync(distJsDir)) {
-      fs.mkdirSync(distJsDir, { recursive: true });
-    }
-    if (!fs.existsSync(distCssDir)) {
-      fs.mkdirSync(distCssDir, { recursive: true });
-    }
-
     // Copy JS files
-    if (fs.existsSync(path.join(assetsDir, 'js'))) {
-      fs.cpSync(path.join(assetsDir, 'js'), distJsDir, { recursive: true });
+    const jsDir = path.join(assetsDir, 'js');
+    if (fs.existsSync(jsDir)) {
+      fs.cpSync(jsDir, path.join(distDir, 'assets', 'js'), { recursive: true });
     }
 
     console.log('Assets copied to dist');
@@ -123,11 +119,13 @@ async function build() {
   try {
     // Clean dist first
     cleanDist();
-    // Process CSS first
+    // Create all necessary directories
+    createDirectories();
+    // Process CSS
     await processCSS();
     // Copy assets
     copyAssets();
-    // Then process HTML files
+    // Process HTML files
     processDirectory(pagesDir, distDir);
     console.log('Build completed successfully');
   } catch (error) {
