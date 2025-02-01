@@ -42,11 +42,30 @@ function processTemplate(content) {
   });
 }
 
-// Process each file in the pages directory
-fs.readdirSync(pagesDir).forEach(file => {
-  const filePath = path.join(pagesDir, file);
-  const content = fs.readFileSync(filePath, 'utf8');
-  const processedContent = processTemplate(content);
-  fs.writeFileSync(path.join(distDir, file), processedContent, 'utf8');
-  console.log(`Built ${file}`);
-});
+// Recursively process directories and files from the source (pages)
+// to the destination (dist) while maintaining the same folder structure.
+function processDirectory(srcDir, destDir) {
+  fs.readdirSync(srcDir).forEach(entry => {
+    const srcPath = path.join(srcDir, entry);
+    const destPath = path.join(destDir, entry);
+    const stats = fs.statSync(srcPath);
+    
+    if (stats.isDirectory()) {
+      // Create the subdirectory in dist if it doesn't exist
+      if (!fs.existsSync(destPath)) {
+        fs.mkdirSync(destPath);
+      }
+      // Recursively process the subdirectory
+      processDirectory(srcPath, destPath);
+    } else if (stats.isFile()) {
+      // Process files by replacing the component include tags
+      const content = fs.readFileSync(srcPath, 'utf8');
+      const processedContent = processTemplate(content);
+      fs.writeFileSync(destPath, processedContent, 'utf8');
+      console.log(`Built ${destPath}`);
+    }
+  });
+}
+
+// Start processing from the pages directory
+processDirectory(pagesDir, distDir);
