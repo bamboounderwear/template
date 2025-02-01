@@ -1,31 +1,41 @@
 const fs = require('fs');
 const path = require('path');
 
-// Define directories
 const pagesDir = path.join(__dirname, 'pages');
 const componentsDir = path.join(__dirname, 'components');
 const distDir = path.join(__dirname, 'dist');
 
-// Ensure the dist directory exists (create it if not)
+// Ensure the dist directory exists
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir);
 }
 
-// Function to process a page’s content by replacing component tags
 function processTemplate(content) {
-  // Look for include tags like: {{> nav}} or {{> footer}}
-  return content.replace(/{{>\s*(\w+)\s*}}/g, (match, componentName) => {
+  // This regex captures the component name and the parameter string.
+  return content.replace(/{{>\s*(\w+)(.*?)}}/g, (match, componentName, paramsString) => {
     const componentPath = path.join(componentsDir, `${componentName}.html`);
-    if (fs.existsSync(componentPath)) {
-      return fs.readFileSync(componentPath, 'utf8');
-    } else {
+    if (!fs.existsSync(componentPath)) {
       console.error(`Component "${componentName}" not found at ${componentPath}`);
       return '';
     }
+    let componentContent = fs.readFileSync(componentPath, 'utf8');
+
+    // Parse parameters in the form key="value"
+    // Example paramsString: ' title="Custom Title" slogan="The Best Site Ever"'
+    const paramsRegex = /(\w+)\s*=\s*"([^"]*)"/g;
+    let paramMatch;
+    while ((paramMatch = paramsRegex.exec(paramsString)) !== null) {
+      const key = paramMatch[1];
+      const value = paramMatch[2];
+      // Replace all placeholders in the component content that match the key.
+      const placeholderRegex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+      componentContent = componentContent.replace(placeholderRegex, value);
+    }
+    return componentContent;
   });
 }
 
-// Read all pages and process them
+// Process each page in the pages directory
 fs.readdir(pagesDir, (err, files) => {
   if (err) {
     console.error('Error reading pages directory:', err);
