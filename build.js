@@ -1,5 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const postcss = require('postcss');
+const tailwindcss = require('tailwindcss');
+const autoprefixer = require('autoprefixer');
 
 const pagesDir = path.join(__dirname, 'pages');
 const componentsDir = path.join(__dirname, 'components');
@@ -8,6 +11,21 @@ const distDir = path.join(__dirname, 'dist');
 // Ensure the dist directory exists
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir);
+}
+
+// Process CSS with PostCSS and Tailwind
+async function processCSS() {
+  const css = fs.readFileSync('styles.css', 'utf8');
+  const result = await postcss([
+    tailwindcss,
+    autoprefixer
+  ]).process(css, {
+    from: 'styles.css',
+    to: path.join(distDir, 'styles.css')
+  });
+
+  fs.writeFileSync(path.join(distDir, 'styles.css'), result.css);
+  console.log('CSS processed with Tailwind');
 }
 
 // Parse parameters from include tag parameter string (e.g., ' pageTitle="Home" slogan="Welcome"')
@@ -67,5 +85,19 @@ function processDirectory(srcDir, destDir) {
   });
 }
 
-// Start processing from the pages directory
-processDirectory(pagesDir, distDir);
+// Main build process
+async function build() {
+  try {
+    // Process CSS first
+    await processCSS();
+    // Then process HTML files
+    processDirectory(pagesDir, distDir);
+    console.log('Build completed successfully');
+  } catch (error) {
+    console.error('Build failed:', error);
+    process.exit(1);
+  }
+}
+
+// Run the build
+build();
